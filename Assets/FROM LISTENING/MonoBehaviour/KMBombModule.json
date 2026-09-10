@@ -1,0 +1,15 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": -8748971907095766652
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": -6651706777351650215
+  },
+  "m_Name": "",
+  "ModuleType": "Listening",
+  "ModuleDisplayName": "Listening",
+  "RequiresTimerVisibility": 0
+}

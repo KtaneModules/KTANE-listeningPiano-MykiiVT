@@ -1,0 +1,49 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": -8748971907095766652
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": 1151407904106107487
+  },
+  "m_Name": "",
+  "Parent": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "Children": [
+    {
+      "m_FileID": 0,
+      "m_PathID": 670015224911034777
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": -5758986863535102330
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": -5509217646692087018
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": -2477993937144614958
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": -6190166729267823479
+    }
+  ],
+  "IsPassThrough": 0,
+  "ChildRowLength": 4,
+  "Highlight": {
+    "m_FileID": 0,
+    "m_PathID": -291296349227726519
+  },
+  "SelectableArea": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "DefaultSelectableIndex": 0
+}

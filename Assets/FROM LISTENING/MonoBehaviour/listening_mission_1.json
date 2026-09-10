@@ -1,0 +1,32 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": -9092133190611885586
+  },
+  "m_Name": "listening_mission_1",
+  "DisplayName": "The Listening",
+  "Description": "We're all ears.",
+  "GeneratorSetting": {
+    "TimeLimit": 250.0,
+    "NumStrikes": 3,
+    "TimeBeforeNeedyActivation": 90,
+    "FrontFaceOnly": 1,
+    "ComponentPools": [
+      {
+        "Count": 5,
+        "AllowedSources": 2,
+        "ComponentTypes": [],
+        "SpecialComponentType": 0,
+        "ModTypes": [
+          "Listening"
+        ]
+      }
+    ]
+  },
+  "PacingEventsEnabled": 1
+}

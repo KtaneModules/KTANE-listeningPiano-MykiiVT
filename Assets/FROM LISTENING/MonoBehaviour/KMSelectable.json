@@ -1,0 +1,28 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": 3079444096381452419
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": 1151407904106107487
+  },
+  "m_Name": "",
+  "Parent": {
+    "m_FileID": 0,
+    "m_PathID": 1804927281007634307
+  },
+  "Children": [],
+  "IsPassThrough": 0,
+  "ChildRowLength": 0,
+  "Highlight": {
+    "m_FileID": 0,
+    "m_PathID": 936780949592974851
+  },
+  "SelectableArea": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "DefaultSelectableIndex": 0
+}

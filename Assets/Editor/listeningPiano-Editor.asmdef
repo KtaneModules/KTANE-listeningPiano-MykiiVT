@@ -1,0 +1,10 @@
+{
+  "name": "listeningPiano-Editor",
+  "references": [
+    "listeningPiano"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}

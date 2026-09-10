@@ -1,0 +1,46 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": -8748971907095766652
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": 4061063088849043553
+  },
+  "m_Name": "",
+  "SpeakerTransform": {
+    "m_FileID": 0,
+    "m_PathID": -414073321094307254
+  },
+  "CassetteSpinners": [
+    {
+      "m_FileID": 0,
+      "m_PathID": 6529683580290661356
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": 6237236005672935196
+    }
+  ],
+  "PlayButton": {
+    "m_FileID": 0,
+    "m_PathID": -6190166729267823479
+  },
+  "DollarButton": {
+    "m_FileID": 0,
+    "m_PathID": -5758986863535102330
+  },
+  "PoundButton": {
+    "m_FileID": 0,
+    "m_PathID": 670015224911034777
+  },
+  "StarButton": {
+    "m_FileID": 0,
+    "m_PathID": -2477993937144614958
+  },
+  "AmpersandButton": {
+    "m_FileID": 0,
+    "m_PathID": -5509217646692087018
+  }
+}
