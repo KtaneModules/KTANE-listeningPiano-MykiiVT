@@ -23,9 +23,9 @@ public class listeningPianoScript : MonoBehaviour {
 	public SwitchMovement switchMovement;
 
 	static int moduleIdCounter = 1;
-	int moduleId;
+	public int moduleId;
 
-	int[][] Songs;
+	public int[][] Songs;
 
 	int SelectedSongIndex;
 	int[] SelectedSong;
@@ -53,6 +53,11 @@ public class listeningPianoScript : MonoBehaviour {
 	private Coroutine SpinCoroutine;
 	bool TwitchPlaysActive;
 	List<int> LogList = new List<int>();
+
+	//For Souvenir
+	public AudioClip[] PianoSounds;
+	public int[][] SouvenirList = new int [6][];
+	public string[] SouvenirNamesList = new string[6];
 
 	void Awake()
 	{
@@ -387,7 +392,324 @@ public class listeningPianoScript : MonoBehaviour {
 			9, -1, -1,
 			0, -1,
 			1, -1,
-			2}
+			2},
+
+			//22. The Fox(Ylvis)
+			new int[]{256,
+			7,
+			0, -1,
+			3,
+			5, -1,
+			10,
+			7, -1,
+			0, -1,
+			3,
+			5, -1,
+			7,
+			0},
+
+			//23. Radetzky March
+			new int[]{440,
+			4,
+			3,
+			4, -1,
+			4,
+			3,
+			4, -1,
+			4,
+			3,
+			4, -1,
+			2, -1,
+			0, -1,
+			4,
+			3,
+			4, -1,
+			4,
+			3,
+			4, -1,
+			4,
+			3,
+			4, -1,
+			9, -1,
+			7, -1},
+
+			//24. Steamboat Bill
+			new int[]{360,
+			3,
+			4, -1,
+			0, -1,
+			2, -1,
+			3,
+			4,
+			3,
+			4,
+			3,
+			4,
+			7},
+
+			//25. Theme from "The Amazing Digital Circus"
+			new int[]{460,
+			0,
+			1,
+			2, -1, -1, -1, -1, -1, -1, -1,
+			9, -1,
+			6, -1,
+			6, -1,
+			4, -1,
+			2, -1, -1, -1, -1, -1, -1, -1,
+			9, -1,
+			6, -1,
+			6, -1,
+			4,
+			5,
+			6
+			},
+
+			//26. Gangsta's Paradise
+			new int[]{360,
+			5,
+			8, -1,
+			8, -1,
+			8,
+			7, -1,
+			5, -1,
+			5, -1, -1,
+			5,
+			5,
+			4, -1,
+			0,
+			7, -1,
+			8, -1, -1,
+			7,
+			5,
+			3,
+			5},
+
+			//27. Barbie Girl
+			new int[]{260,
+			5,
+			1,
+			5,
+			10,
+			6, -1, -1, -1,
+			3,
+			0,
+			3,
+			8,
+			5, -1,
+			3,
+			1},
+
+			//28. Whistle
+			new int[]{420,
+			9, -1,
+			7, -1,
+			4, -1,
+			7,
+			4, -1, -1, -1, -1, -1, -1, -1, -1,
+			4, -1,
+			2, -1,
+			0, -1,
+			2,
+			4},
+
+			//29. Giorno's Theme
+			new int[]{540,
+			5, -1, -1, -1, -1, -1,
+			1, -1, -1, -1, -1, -1, -1, -1,
+			1,
+			3,
+			4, -1, -1,
+			3, -1, -1,
+			1, -1,
+			0, -1, -1,
+			1, -1, -1,
+			3, -1,
+			5, -1, -1, -1, -1, -1,
+			10},
+
+			//30. Crab Rave
+			new int[]{500,
+			2, -1,
+			10, -1,
+			7, -1,
+			7,
+			2, -1,
+			2,
+			9, -1,
+			5, -1,
+			5,
+			2, -1,
+			2,
+			9, -1,
+			5, -1,
+			5,
+			0, -1,
+			0, -1,
+			4, -1,
+			4,
+			5},
+
+			//31. Super Idol
+			new int[]{250,
+			7,
+			7,
+			8,
+			7,
+			5,
+			7,
+			0, -1,
+			5,
+			3,
+			0, -1,
+			3, -1,
+			5},
+
+			//32. Bones
+			new int[]{230,
+			0,
+			3,
+			0,
+			3,
+			7, -1,
+			5,
+			3,
+			5,
+			5,
+			5,
+			5,
+			7},
+
+			//33. All Star
+			new int[]{210,
+			0, -1,
+			7,
+			4,
+			4, -1,
+			2,
+			0,
+			0,
+			5, -1,
+			4,
+			4,
+			2,
+			2,
+			0},
+
+			//34. Twinkle Twinkle Little Star
+			new int[]{130,
+			0,
+			0,
+			7,
+			7,
+			9,
+			9,
+			7, -1,
+			5,
+			5,
+			4,
+			4,
+			2,
+			2,
+			0},
+
+			//35. Party in the USA
+			new int[]{385,
+			0,
+			0,
+			0,
+			0,
+			7, -1, -1, -1,
+			4, -1,
+			0,
+			7, -1,
+			7,
+			7, -1,
+			4, -1, -1,
+			0,
+			2,
+			4,
+			4, -1,
+			4, -1,
+			0, -1,
+			2},
+
+			//36. Bad Guy
+			new int[]{270,
+			0,
+			7, -1,
+			0,
+			6,
+			7,
+			6,
+			3,
+			0,
+			7, -1,
+			0,
+			6,
+			7,
+			6,
+			3},
+
+			//37. APT.
+			new int[]{300,
+			6, -1,
+			6,
+			6, -1,
+			5,
+			5,
+			5,
+			0, -1,
+			0, -1,
+			1, -1,
+			3, -1,
+			5, -1,
+			5,
+			5, -1,
+			3,
+			3,
+			3,
+			3, -1,
+			1, -1,
+			5},
+
+			//38. Toxic
+			new int[]{550,
+			0, -1,
+			0, -1,
+			3,
+			2,
+			0,
+			2,
+			3, -1,
+			0, -1,
+			3,
+			2,
+			0, -1,
+			7, -1, -1, -1,
+			2, -1, -1, -1,
+			3, -1,
+			2, -1,
+			0},
+
+			//39. Blinding Lights
+			new int[]{340,
+			5, -1, -1, -1,
+			5, -1, -1,
+			3,
+			5,
+			7, -1,
+			0, -1,
+			3, -1, -1,
+			10,
+			7, -1,
+			5, -1,
+			3, -1, -1,
+			10,
+			7, -1,
+			5, -1,
+			3, -1,
+			5}
 		};
 
 		//Tell each key to go down and come up when appropriate
@@ -416,7 +738,7 @@ public class listeningPianoScript : MonoBehaviour {
 		SelectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
 
 		//DEBUGGING: Choose a predetermined song here
-		//SelectedSongIndex = 10;
+		//SelectedSongIndex = 39;
 
 		SelectedSong = Songs[SelectedSongIndex].ToArray();
 
@@ -502,11 +824,11 @@ public class listeningPianoScript : MonoBehaviour {
 				//PUT NUMBER OF THE PLAYED NOTE HERE FOR THE TABLE
 				if(int.Parse(key.name) < SelectedSong[1] - PlayerTransposeUp)
 				{
-					Debug.Log($"[Listening Piano Keys #{moduleId}] The lowest note of the song is {SelectedSong[1] - PlayerTransposeUp} notes below the starting note. The played starting note puts this note out of range. Striking and reselecting song.\nKey played:{key.name}");
+					Debug.Log($"[Listening Piano Keys #{moduleId}] The lowest note of the song is {SelectedSong[1] - PlayerTransposeUp} notes below the starting note. The played starting note puts this note out of range. Striking and reselecting song.\nKey played: {key.name}");
 				}
 				else
 				{
-					Debug.Log($"[Listening Piano Keys #{moduleId}] The highest note of the song is {HighestNote + PlayerTransposeUp - SelectedSong[1]} notes above the starting note. The played starting note puts this note out of range. Striking and reselecting song.\nKey played:{key.name}");
+					Debug.Log($"[Listening Piano Keys #{moduleId}] The highest note of the song is {HighestNote + PlayerTransposeUp - SelectedSong[1]} notes above the starting note. The played starting note puts this note out of range. Striking and reselecting song.\nKey played: {key.name}");
 				}
 				//Debug.Log($"[Listening Piano Keys #{moduleId}] Began on a note that puts some of the song out of range. Striking and reselecting song.");
 				GetComponent<KMBombModule>().HandleStrike();
@@ -568,6 +890,60 @@ public class listeningPianoScript : MonoBehaviour {
 						{
 							Lift(note);
 						}
+
+						//Select options for souvenir
+						//Add correct answer(index 0)
+						SouvenirList[0] = SelectedSong;
+						SouvenirNamesList[0] = SongNames[SelectedSongIndex];
+						Debug.Log($"The correct Souvenir answer is {String.Join(", ", SelectedSong.Select(x => x.ToString()).ToArray())}.");
+						List<int> indices = new List<int>();
+						for (int i = 0; i < Songs.Length; i++)
+						{
+							if (i != SelectedSongIndex)
+							{
+								indices.Add(i);
+							}
+						}
+						//Select wrong answers(indices 1-5)
+						for (int i = 1; i < 6; i++)
+						{
+							//Choose a random song
+							while(!indices.Contains(SelectedSongIndex))
+							{
+								SelectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
+							}
+							indices.Remove(SelectedSongIndex);
+
+							SelectedSong = Songs[SelectedSongIndex].ToArray();
+							SouvenirNamesList[i] = SongNames[SelectedSongIndex];
+							HighestNote = 0;
+
+							int index = 0;
+							foreach(int note in SelectedSong)
+							{
+								if(index != 0 && note > HighestNote)
+								{
+									HighestNote = note;
+								}
+								index++;
+							}
+
+							//Choose how many semitones to transpose the player up. Add 1 to the bound because the upper bound is exclusive.
+							PlayerTransposeUp = UnityEngine.Random.Range(0, 12 - HighestNote);
+
+							//Repeat this the same number of times as the length of SelectedSong - 1, incrementing j each time starting at 0
+							for (int j = 0; j < SelectedSong.Length; j++)
+							{
+								//Only transpose the note up if it is not the first element or a rest
+								if(j != 0 && SelectedSong[j] != -1)
+								{
+									SelectedSong[j] += PlayerTransposeUp;
+								}
+							}
+							Debug.Log($"Souvenir list index {i} is {String.Join(", ", SelectedSong.Select(x => x.ToString()).ToArray())}.");
+							SouvenirList[i] = SelectedSong.ToArray();
+						}
+						Debug.Log($"Names: {String.Join(", ", SouvenirNamesList)}");
 						GetComponent<KMBombModule>().HandlePass();
 					}
 				}
