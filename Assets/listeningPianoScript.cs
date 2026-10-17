@@ -1,15 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-
-using System;
 using System.Linq;
-using KModkit;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 public class listeningPianoScript : MonoBehaviour
 {
-
     public KMAudio Audio;
     public KMBombInfo Bomb;
     public KMBombModule Module;
@@ -18,699 +15,121 @@ public class listeningPianoScript : MonoBehaviour
     public KMSelectable Switch;
 
     public Transform[] Spinners;
-
     public GameObject Labels;
-
     public SwitchMovement switchMovement;
 
     static int moduleIdCounter = 1;
     public int moduleId;
 
-    public int[][] Songs;
+    private static readonly string[][] _noteNames = "C,C♯/Cs/D♭/Df,D,D♯/Ds/E♭/Ef,E,F,F♯/Fs/G♭/Gf,G,G♯/Gs/A♭/Af,A,A♯/As/B♭/Bf,B".Split(',').Select(s => s.Split('/')).ToArray();
 
-    int SelectedSongIndex;
-    int[] SelectedSong;
-    WaitForSeconds delay;
-    WaitForSeconds HalfDelay;
+    struct Note
+    {
+        public int Pitch;
+        public int Length;
+    }
+
+    struct Song
+    {
+        public string Name { get; set; }
+        public int Speed { get; set; }
+        public string Melody { get; set; }
+
+        private Note[] _notes;
+        public Note[] Notes
+        {
+            get
+            {
+                if (_notes == null)
+                {
+                    var name = Name;
+                    _notes = Melody.Split(' ').Select(s =>
+                    {
+                        int noteLength;
+                        for (var pitch = 0; pitch < _noteNames.Length; pitch++)
+                            foreach (var noteName in _noteNames[pitch])
+                                if (s.StartsWith(noteName, StringComparison.InvariantCultureIgnoreCase) && int.TryParse(s.Substring(noteName.Length), out noteLength))
+                                    return new Note { Pitch = pitch, Length = noteLength };
+                        throw new InvalidOperationException($"The melody for {name} contains invalid note {s}.");
+                    }).ToArray();
+                }
+                return _notes;
+            }
+        }
+    }
+
+    private static readonly Song[] Songs = new[]
+    {
+        new Song { Name = "Frosty the Snowman", Speed = 400, Melody = "ef4 c3 df1 ef2 af4 g1 af1 bf2 af2 g2 f2 ef1" },
+        new Song { Name = "Tetris", Speed = 300, Melody = "g2 d1 ef1 f2 ef1 d1 c2 c1 ef1 g1" },
+        new Song { Name = "Still Alive (Radio Mix)", Speed = 480, Melody = "bf1 a2 g3 a10 bf1 a2 g3 a2 f2 g1 c1" },
+        new Song { Name = "Can Can", Speed = 300, Melody = "c4 d1 f1 e1 d1 g2 g2 g1 a1 e1 f1 d2 d1" },
+        new Song { Name = "Wait (KTANE OST)", Speed = 260, Melody = "c2 g1 c1 c1 ef1 e1 f2 a2 ef1 f1 ef1 f1 ef1" },
+        new Song { Name = "Fur Elise", Speed = 240, Melody = "g1 gf1 g1 gf1 g1 d1 f1 ef1 c1" },
+        new Song { Name = "Spring (Vivaldi)", Speed = 480, Melody = "e2 e2 e2 d1 c1 g6 g1 f1 e2 e2 e2 d1 c1 g1" },
+        new Song { Name = "Never Gonna Give You Up", Speed = 480, Melody = "c1 d1 f1 d1 a3 a3 g6 c1 d1 e1 c1 g3 g3 f1" },
+        new Song { Name = "A Cruel Angel’s Thesis (Evangelion)", Speed = 520, Melody = "c4 ef4 f3 ef3 f2 f2 f2 bf2 af2 g1 f2 g1" },
+        new Song { Name = "It’s Been So Long (The Living Tombstone)", Speed = 510, Melody = "d2 f1 a2 d1 f2 a1 d2 df1 c2 e1 bf2 c1 e2 bf1 g2 e1" },
+        new Song { Name = "Happy Birthday", Speed = 390, Melody = "c2 c1 d3 c3 f3 e6 c2 c1 d3 c3 g3 f1" },
+        new Song { Name = "Billie Jean", Speed = 240, Melody = "g1 d1 f1 g1 f1 d1 c1 d1 g1 d1 f1 g1 f1 d1 c1 d1" },
+        new Song { Name = "Despacito", Speed = 1080, Melody = "f15 c3 f3 g3 af4 bf4 af4 g4 f4 ef4 df9 af9 af1" },
+        new Song { Name = "Blue (Da Ba Dee)", Speed = 240, Melody = "e2 f2 d1 f1 g1 c1 e1 f2 d1 f1 a1 bf2 a1 g1 f1" },
+        new Song { Name = "Among Us (Trap Remix)", Speed = 360, Melody = "d4 d2 f2 g2 af2 g2 f2 d6 c1 e1 d1" },
+        new Song { Name = "Hello (OMFG)", Speed = 600, Melody = "c6 c2 d1 ef2 g1 af3 af3 af2 g1 f2 g1 ef1" },
+        new Song { Name = "Axel F", Speed = 440, Melody = "d4 f3 d2 d1 g2 d2 c2 d4 a3 d2 d1 bf2 a2 f1" },
+        new Song { Name = "Unity (TheFatRat)", Speed = 540, Melody = "a1 g2 f1 d2 c1 d5 a1 g2 f1 d2 c1 d5 a1 g2 f1 d2 c1 d3 f3 g3 a3 g1" },
+        new Song { Name = "In the Hall of the Mountain King", Speed = 240, Melody = "c1 d1 ef1 f1 g1 ef1 g2 gf1 d1 gf2 f1 df1 f1" },
+        new Song { Name = "Buddy Holly", Speed = 240, Melody = "f1 df1 f1 g1 a1 g1 f1 df1 c1" },
+        new Song { Name = "Ode to Joy", Speed = 280, Melody = "e2 e2 f2 g2 g2 f2 e2 d2 c2 c2 d2 e2 e3 d1 d1" },
+        new Song { Name = "Victory Jingle (KTANE)", Speed = 460, Melody = "d1 c1 d1 f3 g1 f1 g1 a3 c2 df2 d1" },
+        new Song { Name = "The Fox (Ylvis)", Speed = 256, Melody = "g1 c2 ef1 f2 bf1 g2 c2 ef1 f2 g1 c1" },
+        new Song { Name = "Radetzky March", Speed = 440, Melody = "e1 ef1 e2 e1 ef1 e2 e1 ef1 e2 d2 c2 e1 ef1 e2 e1 ef1 e2 e1 ef1 e2 a2 g2" },
+        new Song { Name = "Steamboat Bill", Speed = 360, Melody = "ef1 e2 c2 d2 ef1 e1 ef1 e1 ef1 e1 g1" },
+        new Song { Name = "Theme from “The Amazing Digital Circus”", Speed = 460, Melody = "c1 df1 d8 a2 gf2 gf2 e2 d8 a2 gf2 gf2 e1 f1 gf1" },
+        new Song { Name = "Gangsta’s Paradise", Speed = 360, Melody = "f1 af2 af2 af1 g2 f2 f3 f1 f1 e2 c1 g2 af3 g1 f1 ef1 f1" },
+        new Song { Name = "Barbie Girl", Speed = 260, Melody = "f1 df1 f1 bf1 gf4 ef1 c1 ef1 af1 f2 ef1 df1" },
+        new Song { Name = "Whistle", Speed = 420, Melody = "a2 g2 e2 g1 e9 e2 d2 c2 d1 e1" },
+        new Song { Name = "Giorno’s Theme", Speed = 540, Melody = "f6 df8 df1 ef1 e3 ef3 df2 c3 df3 ef2 f6 bf1" },
+        new Song { Name = "Crab Rave", Speed = 500, Melody = "d2 bf2 g2 g1 d2 d1 a2 f2 f1 d2 d1 a2 f2 f1 c2 c2 e2 e1 f1" },
+        new Song { Name = "Super Idol", Speed = 250, Melody = "g1 g1 af1 g1 f1 g1 c2 f1 ef1 c2 ef2 f1" },
+        new Song { Name = "Bones", Speed = 230, Melody = "c1 ef1 c1 ef1 g2 f1 ef1 f1 f1 f1 f1 g1" },
+        new Song { Name = "All Star", Speed = 210, Melody = "c2 g1 e1 e2 d1 c1 c1 f2 e1 e1 d1 d1 c1" },
+        new Song { Name = "Twinkle Twinkle Little Star", Speed = 130, Melody = "c1 c1 g1 g1 a1 a1 g2 f1 f1 e1 e1 d1 d1 c1" },
+        new Song { Name = "Party in the USA", Speed = 385, Melody = "c1 c1 c1 c1 g4 e2 c1 g2 g1 g2 e3 c1 d1 e1 e2 e2 c2 d1" },
+        new Song { Name = "Bad Guy", Speed = 270, Melody = "c1 g2 c1 gf1 g1 gf1 ef1 c1 g2 c1 gf1 g1 gf1 ef1" },
+        new Song { Name = "APT.", Speed = 300, Melody = "gf2 gf1 gf2 f1 f1 f1 c2 c2 df2 ef2 f2 f1 f2 ef1 ef1 ef1 ef2 df2 f1" },
+        new Song { Name = "Toxic", Speed = 550, Melody = "c2 c2 ef1 d1 c1 d1 ef2 c2 ef1 d1 c2 g4 d4 ef2 d2 c1" },
+        new Song { Name = "Blinding Lights", Speed = 340, Melody = "f4 f3 ef1 f1 g2 c2 ef3 bf1 g2 f2 ef3 bf1 g2 f2 ef2 f1" },
+    };
+
+    Song SelectedSong;
+    float delay;
+    float HalfDelay;
     WaitForSeconds PrePlayDelay = new WaitForSeconds(0.2f);
     WaitForSeconds KeepSpinnersGoingFor = new WaitForSeconds(0.5f);
     WaitForSeconds PostPlayDelay = new WaitForSeconds(2f);
     int PlayerTransposeUp;
     int PlayerToInputTranspose;
     int HighestNote;
-    int LastNote;
-    String SelectedSongName;
     int Stage;
-    int CorrectAnswer;
+    int CorrectPitch;
 
     private bool LockedToSubmit;
     public bool Playing = false;
-    int SpinSpeed = 300;
-    float RewindTime = 1.4f;
+    const int SpinSpeed = 300;
+    const float RewindTime = 1.4f;
     private bool moduleSolved;
 
     private Coroutine playSongCoroutine;
-    private Coroutine SpinCoroutine;
-    bool TwitchPlaysActive;
-    List<int> LogList = new List<int>();
+    readonly bool TwitchPlaysActive;
+    readonly List<int> LogList = new List<int>();
 
     //For Souvenir
     public AudioClip[] PianoSounds;
-    public int[][] SouvenirList = new int[6][];
-    public string[] SouvenirNamesList = new string[6];
 
     void Awake()
     {
         moduleId = moduleIdCounter++;
-
-        Songs = new int[][]
-        {
-			//All songs are given here in the lowest possible key
-
-			//The first index of each song is metadata indicating the BPM where each index is a beat
-
-			//-1 denotes a rest
-
-			//0. Frosty the Snowman
-			new int[]{400,
-            3,-1,-1,-1,
-            0,-1,-1,
-            1,
-            3,-1,
-            8,-1,-1,-1,
-            7,
-            8,
-            10,-1,
-            8,-1,
-            7,-1,
-            5,-1,
-            3},
-
-			//1. Tetris
-			new int[]{300,
-            7,-1,
-            2,
-            3,
-            5,-1,
-            3,
-            2,
-            0,-1,
-            0,
-            3,
-            7},
-
-			//2. Still Alive(Radio Mix)
-			new int[]{480,
-            10,
-            9,-1,
-            7,-1,-1,
-            9,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-            10,
-            9,-1,
-            7,-1,-1,
-            9,-1,
-            5,-1,
-            7,
-            0},
-
-			//3. Can Can
-			new int[]{300,
-            0,-1,-1,-1,
-            2,
-            5,
-            4,
-            2,
-            7,-1,
-            7,-1,
-            7,
-            9,
-            4,
-            5,
-            2,-1,
-            2},
-
-			//4. Wait(KTANE OST)
-			new int[]{260,
-            0,-1,
-            7,
-            0,
-            0,
-            3,
-            4,
-            5,-1,
-            9,-1,
-            3,
-            5,
-            3,
-            5,
-            3},
-
-			//5. Fur Elise
-			new int[]{240,
-            7,6,7,6,7,2,5,3,0},
-
-			//6. Spring(Vivaldi)
-			new int[]{480,
-            4, -1,
-            4, -1,
-            4, -1,
-            2,
-            0,
-            7,-1,-1,-1,-1,-1,
-            7,
-            5,
-            4, -1,
-            4, -1,
-            4, -1,
-            2,
-            0,
-            7},
-
-			//7. Never Gonna Give You Up
-			new int[]{480,
-            0,
-            2,
-            5,
-            2,
-            9,-1,-1,
-            9,-1,-1,
-            7,-1,-1,-1,-1,-1,
-            0,
-            2,
-            4,
-            0,
-            7,-1,-1,
-            7,-1,-1,
-            5},
-
-			//8. A Cruel Angel's Thesis(Evangelion)
-			new int[]{520,
-            0,-1,-1,-1,
-            3,-1,-1,-1,
-            5,-1,-1,
-            3,-1,-1,
-            5,-1,
-            5,-1,
-            5,-1,
-            10,-1,
-            8,-1,
-            7,
-            5,-1,
-            7},
-
-			//9. It's Been So Long(The Living Tombstone)
-			new int[]{510,
-            2,-1,
-            5,
-            9,-1,
-            2,
-            5,-1,
-            9,
-            2,-1,
-            1,
-            0,-1,
-            4,
-            10,-1,
-            0,
-            4,-1,
-            10,
-            7,-1,
-            4},
-
-			//10. Happy Birthday
-			new int[]{390,
-            0,-1,
-            0,
-            2,-1,-1,
-            0,-1,-1,
-            5,-1,-1,
-            4,-1,-1,-1,-1,-1,
-            0,-1,
-            0,
-            2,-1,-1,
-            0,-1,-1,
-            7,-1,-1,
-            5},
-
-			//11. Billie Jean
-			new int[]{240,
-            7,2,5,7,5,2,0,2,7,2,5,7,5,2,0,2},
-
-			//12. Despacito
-			new int[]{1080,
-            5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-            0,-1,-1,
-            5,-1,-1,
-            7,-1,-1,
-            8,-1,-1,-1,
-            10,-1,-1,-1,
-            8,-1,-1,-1,
-            7,-1,-1,-1,
-            5,-1,-1,-1,
-            3,-1,-1,-1,
-            1,-1,-1,-1,-1,-1,-1,-1,-1,
-            8,-1,-1,-1,-1,-1,-1,-1,-1,
-            8},
-
-			//13. Blue(Da Ba Dee)
-			new int[]{240,
-            4,-1,
-            5,-1,
-            2,
-            5,
-            7,
-            0,
-            4,
-            5,-1,
-            2,
-            5,
-            9,
-            10,-1,
-            9,
-            7,
-            5},
-
-			//14. Among Us(Trap Remix)
-			new int[]{360,
-            2,-1,-1,-1,
-            2,-1,
-            5,-1,
-            7,-1,
-            8,-1,
-            7,-1,
-            5,-1,
-            2,-1,-1,-1,-1,-1,
-            0,
-            4,
-            2},
-
-			//15. Hello(OMFG)
-			new int[]{600,
-            0,-1,-1,-1,-1,-1,
-            0,-1,
-            2,
-            3,-1,
-            7,
-            8,-1,-1,
-            8,-1,-1,
-            8,-1,
-            7,
-            5,-1,
-            7,
-            3},
-
-			//16. Axel F
-			new int[]{440,
-            2,-1,-1,-1,
-            5,-1,-1,
-            2,-1,
-            2,
-            7,-1,
-            2,-1,
-            0,-1,
-            2,-1,-1,-1,
-            9,-1,-1,
-            2,-1,
-            2,
-            10,-1,
-            9,-1,
-            5},
-
-			//17. Unity(TheFatRat)
-			//How serendipitous
-			new int[]{540,
-            9,
-            7,-1,
-            5,
-            2,-1,
-            0,
-            2,-1,-1,-1,-1,
-            9,
-            7,-1,
-            5,
-            2,-1,
-            0,
-            2,-1,-1,-1,-1,
-            9,
-            7,-1,
-            5,
-            2,-1,
-            0,
-            2,-1,-1,
-            5,-1,-1,
-            7,-1,-1,
-            9,-1,-1,
-            7},
-
-			//18. In the Hall of the Mountain King
-			new int[]{240,
-            0,
-            2,
-            3,
-            5,
-            7,
-            3,
-            7,-1,
-            6,
-            2,
-            6,-1,
-            5,
-            1,
-            5},
-
-			//19. Buddy Holly
-			new int[]{240,
-            5,1,5,7,9,7,5,1,0},
-
-			//20. Ode to Joy
-			new int[]{280,
-            4, -1,
-            4, -1,
-            5, -1,
-            7, -1,
-            7, -1,
-            5, -1,
-            4, -1,
-            2, -1,
-            0, -1,
-            0, -1,
-            2, -1,
-            4, -1,
-            4, -1, -1,
-            2,
-            2},
-
-			//21. Victory Jingle(KTANE)
-			new int[]{460,
-            2,
-            0,
-            2,
-            5, -1, -1,
-            7,
-            5,
-            7,
-            9, -1, -1,
-            0, -1,
-            1, -1,
-            2},
-
-			//22. The Fox(Ylvis)
-			new int[]{256,
-            7,
-            0, -1,
-            3,
-            5, -1,
-            10,
-            7, -1,
-            0, -1,
-            3,
-            5, -1,
-            7,
-            0},
-
-			//23. Radetzky March
-			new int[]{440,
-            4,
-            3,
-            4, -1,
-            4,
-            3,
-            4, -1,
-            4,
-            3,
-            4, -1,
-            2, -1,
-            0, -1,
-            4,
-            3,
-            4, -1,
-            4,
-            3,
-            4, -1,
-            4,
-            3,
-            4, -1,
-            9, -1,
-            7, -1},
-
-			//24. Steamboat Bill
-			new int[]{360,
-            3,
-            4, -1,
-            0, -1,
-            2, -1,
-            3,
-            4,
-            3,
-            4,
-            3,
-            4,
-            7},
-
-			//25. Theme from "The Amazing Digital Circus"
-			new int[]{460,
-            0,
-            1,
-            2, -1, -1, -1, -1, -1, -1, -1,
-            9, -1,
-            6, -1,
-            6, -1,
-            4, -1,
-            2, -1, -1, -1, -1, -1, -1, -1,
-            9, -1,
-            6, -1,
-            6, -1,
-            4,
-            5,
-            6
-            },
-
-			//26. Gangsta's Paradise
-			new int[]{360,
-            5,
-            8, -1,
-            8, -1,
-            8,
-            7, -1,
-            5, -1,
-            5, -1, -1,
-            5,
-            5,
-            4, -1,
-            0,
-            7, -1,
-            8, -1, -1,
-            7,
-            5,
-            3,
-            5},
-
-			//27. Barbie Girl
-			new int[]{260,
-            5,
-            1,
-            5,
-            10,
-            6, -1, -1, -1,
-            3,
-            0,
-            3,
-            8,
-            5, -1,
-            3,
-            1},
-
-			//28. Whistle
-			new int[]{420,
-            9, -1,
-            7, -1,
-            4, -1,
-            7,
-            4, -1, -1, -1, -1, -1, -1, -1, -1,
-            4, -1,
-            2, -1,
-            0, -1,
-            2,
-            4},
-
-			//29. Giorno's Theme
-			new int[]{540,
-            5, -1, -1, -1, -1, -1,
-            1, -1, -1, -1, -1, -1, -1, -1,
-            1,
-            3,
-            4, -1, -1,
-            3, -1, -1,
-            1, -1,
-            0, -1, -1,
-            1, -1, -1,
-            3, -1,
-            5, -1, -1, -1, -1, -1,
-            10},
-
-			//30. Crab Rave
-			new int[]{500,
-            2, -1,
-            10, -1,
-            7, -1,
-            7,
-            2, -1,
-            2,
-            9, -1,
-            5, -1,
-            5,
-            2, -1,
-            2,
-            9, -1,
-            5, -1,
-            5,
-            0, -1,
-            0, -1,
-            4, -1,
-            4,
-            5},
-
-			//31. Super Idol
-			new int[]{250,
-            7,
-            7,
-            8,
-            7,
-            5,
-            7,
-            0, -1,
-            5,
-            3,
-            0, -1,
-            3, -1,
-            5},
-
-			//32. Bones
-			new int[]{230,
-            0,
-            3,
-            0,
-            3,
-            7, -1,
-            5,
-            3,
-            5,
-            5,
-            5,
-            5,
-            7},
-
-			//33. All Star
-			new int[]{210,
-            0, -1,
-            7,
-            4,
-            4, -1,
-            2,
-            0,
-            0,
-            5, -1,
-            4,
-            4,
-            2,
-            2,
-            0},
-
-			//34. Twinkle Twinkle Little Star
-			new int[]{130,
-            0,
-            0,
-            7,
-            7,
-            9,
-            9,
-            7, -1,
-            5,
-            5,
-            4,
-            4,
-            2,
-            2,
-            0},
-
-			//35. Party in the USA
-			new int[]{385,
-            0,
-            0,
-            0,
-            0,
-            7, -1, -1, -1,
-            4, -1,
-            0,
-            7, -1,
-            7,
-            7, -1,
-            4, -1, -1,
-            0,
-            2,
-            4,
-            4, -1,
-            4, -1,
-            0, -1,
-            2},
-
-			//36. Bad Guy
-			new int[]{270,
-            0,
-            7, -1,
-            0,
-            6,
-            7,
-            6,
-            3,
-            0,
-            7, -1,
-            0,
-            6,
-            7,
-            6,
-            3},
-
-			//37. APT.
-			new int[]{300,
-            6, -1,
-            6,
-            6, -1,
-            5,
-            5,
-            5,
-            0, -1,
-            0, -1,
-            1, -1,
-            3, -1,
-            5, -1,
-            5,
-            5, -1,
-            3,
-            3,
-            3,
-            3, -1,
-            1, -1,
-            5},
-
-			//38. Toxic
-			new int[]{550,
-            0, -1,
-            0, -1,
-            3,
-            2,
-            0,
-            2,
-            3, -1,
-            0, -1,
-            3,
-            2,
-            0, -1,
-            7, -1, -1, -1,
-            2, -1, -1, -1,
-            3, -1,
-            2, -1,
-            0},
-
-			//39. Blinding Lights
-			new int[]{340,
-            5, -1, -1, -1,
-            5, -1, -1,
-            3,
-            5,
-            7, -1,
-            0, -1,
-            3, -1, -1,
-            10,
-            7, -1,
-            5, -1,
-            3, -1, -1,
-            10,
-            7, -1,
-            5, -1,
-            3, -1,
-            5}
-        };
 
         //Tell each key to go down and come up when appropriate
         foreach (KMSelectable key in PianoKeys)
@@ -736,53 +155,29 @@ public class listeningPianoScript : MonoBehaviour
         Stage = 1;
 
         //Choose a random song
-        SelectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
+        var selectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
 
         //DEBUGGING: Choose a predetermined song here
-        //SelectedSongIndex = 39;
+        //selectedSongIndex = 36;
 
-        SelectedSong = Songs[SelectedSongIndex].ToArray();
+        SelectedSong = Songs[selectedSongIndex];
 
-        SelectedSongName = SongNames[SelectedSongIndex];
-
-        delay = new WaitForSeconds(60f / SelectedSong[0]);
-        HalfDelay = new WaitForSeconds(60f / (2 * SelectedSong[0]));
-
-        HighestNote = 0;
-
-        int index = 0;
-        foreach (int note in SelectedSong)
-        {
-            if (index != 0 && note > HighestNote)
-            {
-                HighestNote = note;
-            }
-            index++;
-        }
-
+        delay = 60f / SelectedSong.Speed;
+        HalfDelay = 60f / (2 * SelectedSong.Speed);
+        HighestNote = SelectedSong.Notes.Max(n => n.Pitch);
 
         //Choose how many semitones to transpose the player up. Add 1 to the bound because the upper bound is exclusive.
         PlayerTransposeUp = UnityEngine.Random.Range(0, 12 - HighestNote);
 
-
-        //Debug.Log($"The highest note is {HighestNote}. Chose to transpose up {PlayerTransposeUp} semitones out of {11 - HighestNote}.");
-
-        //Repeat this the same number of times as the length of SelectedSong - 1, incrementing i each time starting at 0
-        for (int i = 0; i < SelectedSong.Length; i++)
-        {
-            //Only transpose the note up if it is not the first element or a rest
-            if (i != 0 && SelectedSong[i] != -1)
-            {
-                SelectedSong[i] += PlayerTransposeUp;
-            }
-        }
-        Debug.Log($"[Listening Piano Keys #{moduleId}] The song is {SelectedSongName}. \nAcceptable starting notes(inclusive): {SelectedSong[1] - PlayerTransposeUp} - {SelectedSong[1] - PlayerTransposeUp + 11 - HighestNote}");
+        var minAcceptableNote = SelectedSong.Notes[0].Pitch;
+        var maxAcceptableNote = minAcceptableNote + 11 - HighestNote;
+        Debug.Log($"[Listening Piano Keys #{moduleId}] The song is {SelectedSong.Name}, transposed up by {PlayerTransposeUp} semitones.");
+        Debug.Log($"[Listening Piano Keys #{moduleId}] Acceptable starting notes (inclusive): {_noteNames[minAcceptableNote][0]} - {_noteNames[maxAcceptableNote][0]}");
+        Debug.Log($"[Listening Piano Keys #{moduleId}] Possible solution: {SelectedSong.Notes.Select(n => _noteNames[n.Pitch][0]).Join(" ")}");
     }
 
     void Keypress(KMSelectable key)
     {
-        //Debug.Log($"You pressed {key.name}.");
-
         Audio.PlaySoundAtTransform(key.name.ToString(), transform);
         Vector3 currentRotation = key.transform.localEulerAngles;
         currentRotation.x = 7f;
@@ -792,70 +187,64 @@ public class listeningPianoScript : MonoBehaviour
         if (switchMovement.SwitchState & moduleSolved == false)
         {
             //If the stage is 1 and the pressed note is one that puts the rest of the song within range
+            var pressedPitch = int.Parse(key.name);
+            var melodyFirstPitch = SelectedSong.Notes[0].Pitch;
             if (Stage == 1 &&
-            int.Parse(key.name) >= SelectedSong[1] - PlayerTransposeUp &&
-            int.Parse(key.name) <= SelectedSong[1] - PlayerTransposeUp + 11 - HighestNote)
+                pressedPitch >= melodyFirstPitch &&
+                pressedPitch <= melodyFirstPitch + 11 - HighestNote)
             {
                 LockedToSubmit = true;
-                LogList.Add(int.Parse(key.name));
+                LogList.Add(pressedPitch);
 
-                //Calculate the number of semitones to transpose each note up for the correct answer(may be negative)
-                PlayerToInputTranspose = int.Parse(key.name) - SelectedSong[1];
+                //Calculate how many semitones up the defuser is playing the melody
+                PlayerToInputTranspose = pressedPitch - melodyFirstPitch;
                 Stage++;
-                LastNote = SelectedSong[1];
-                //Skip any rests or repeated notes
-                while (SelectedSong[Stage] == -1 || SelectedSong[Stage] == LastNote)
-                {
+                while (Stage < SelectedSong.Notes.Length && SelectedSong.Notes[Stage].Pitch - PlayerToInputTranspose == pressedPitch)
                     Stage++;
-                }
+
+                Debug.Log($"[Listening Piano Keys #{moduleId}] First note pressed: {_noteNames[pressedPitch][0]}. With this, the correctly transposed melody is: {SelectedSong.Notes.Select(n => _noteNames[n.Pitch + PlayerToInputTranspose][0]).Join(" ")}.");
             }
             //If the first note pressed doesn't put the rest of the song within range
             else if (Stage == 1)
             {
-                LogList.Clear();
                 //Strike
+                LogList.Clear();
                 switchMovement.SwitchState = false;
 
                 //For TP
-                playinginput = false;
                 foreach (KMSelectable pianokey in PianoKeys)
-                {
                     Lift(pianokey);
-                }
+
                 //PUT NUMBER OF THE PLAYED NOTE HERE FOR THE TABLE
-                if (int.Parse(key.name) < SelectedSong[1] - PlayerTransposeUp)
+                if (pressedPitch < SelectedSong.Notes[0].Pitch - PlayerTransposeUp)
                 {
-                    Debug.Log($"[Listening Piano Keys #{moduleId}] The lowest note of the song is {SelectedSong[1] - PlayerTransposeUp} notes below the starting note. The played starting note puts this note out of range. Striking and reselecting song.\nKey played: {key.name}");
+                    Debug.Log($"[Listening Piano Keys #{moduleId}] The lowest note of the song is {SelectedSong.Notes[0].Pitch} notes below the starting note. The played starting note ({_noteNames[pressedPitch][0]}) puts this note out of range. Striking and reselecting song.");
                 }
                 else
                 {
-                    Debug.Log($"[Listening Piano Keys #{moduleId}] The highest note of the song is {HighestNote + PlayerTransposeUp - SelectedSong[1]} notes above the starting note. The played starting note puts this note out of range. Striking and reselecting song.\nKey played: {key.name}");
+                    Debug.Log($"[Listening Piano Keys #{moduleId}] The highest note of the song is {HighestNote - SelectedSong.Notes[0].Pitch} notes above the starting note. The played starting note ({_noteNames[pressedPitch][0]}) puts this note out of range. Striking and reselecting song.");
                 }
-                //Debug.Log($"[Listening Piano Keys #{moduleId}] Began on a note that puts some of the song out of range. Striking and reselecting song.");
                 GetComponent<KMBombModule>().HandleStrike();
                 Start();
             }
             else
             {
                 //If not all the notes have been played
-                if (Stage < SelectedSong.Length)
+                if (Stage < SelectedSong.Notes.Length)
                 {
-                    CorrectAnswer = SelectedSong[Stage] + PlayerToInputTranspose;
+                    CorrectPitch = SelectedSong.Notes[Stage].Pitch + PlayerToInputTranspose;
 
                     //If the next different note is correctly played
-                    if (int.Parse(key.name) == CorrectAnswer)
+                    if (pressedPitch == CorrectPitch)
                     {
-                        LogList.Add(int.Parse(key.name));
-                        LastNote = SelectedSong[Stage];
+                        LogList.Add(pressedPitch);
                         Stage++;
-                        //Skip any rests or repeated notes
-                        while (Stage < SelectedSong.Length && (SelectedSong[Stage] == -1 || SelectedSong[Stage] == LastNote))
-                        {
+                        //Skip any repeated notes
+                        while (Stage < SelectedSong.Notes.Length && (SelectedSong.Notes[Stage].Pitch + PlayerToInputTranspose == pressedPitch))
                             Stage++;
-                        }
                     }
                     //If the last note played was played again
-                    else if (int.Parse(key.name) == LastNote + PlayerToInputTranspose)
+                    else if (Stage > 0 && pressedPitch == SelectedSong.Notes[Stage - 1].Pitch + PlayerToInputTranspose)
                     {
                         //ignore it so that the player is allowed to safely misinterpret the number of times a note is immediately repeated
                     }
@@ -867,84 +256,27 @@ public class listeningPianoScript : MonoBehaviour
                         LockedToSubmit = false;
 
                         //For TP
-                        playinginput = false;
-                        //TransposeSet = false;
                         foreach (KMSelectable pianokey in PianoKeys)
                         {
                             Lift(pianokey);
                         }
-                        LogList.Add(int.Parse(key.name));
-                        Debug.Log($"[Listening Piano Keys #{moduleId}] Played an incorrect note. Striking and reselecting song.\nPlayed notes(incorrect): {String.Join(", ", (LogList.Select(x => x.ToString())).ToArray())}");
+                        LogList.Add(pressedPitch);
+                        Debug.Log($"[Listening Piano Keys #{moduleId}] Played an incorrect note. Striking and reselecting song.\nPlayed notes (incorrect): {LogList.Join(", ")}");
                         LogList.Clear();
                         GetComponent<KMBombModule>().HandleStrike();
                         Start();
                     }
                     //If all notes have now correctly been played
-                    if (Stage >= SelectedSong.Length)
+                    if (Stage >= SelectedSong.Notes.Length)
                     {
                         //Solve!
-                        Debug.Log($"[Listening Piano Keys #{moduleId}] Played {SelectedSongName} correctly. Solved.\nPlayed notes(correct): {String.Join(", ", (LogList.Select(x => x.ToString())).ToArray())}");
+                        Debug.Log($"[Listening Piano Keys #{moduleId}] Played {SelectedSong.Name} correctly. Solved.\nPlayed notes (correct): {LogList.Join(", ")}");
                         moduleSolved = true;
                         LockedToSubmit = false;
                         switchMovement.SwitchState = false;
                         foreach (KMSelectable note in PianoKeys)
-                        {
                             Lift(note);
-                        }
 
-                        //Select options for souvenir
-                        //Add correct answer(index 0)
-                        SouvenirList[0] = SelectedSong;
-                        SouvenirNamesList[0] = SongNames[SelectedSongIndex];
-                        Debug.Log($"The correct Souvenir answer is {String.Join(", ", SelectedSong.Select(x => x.ToString()).ToArray())}.");
-                        List<int> indices = new List<int>();
-                        for (int i = 0; i < Songs.Length; i++)
-                        {
-                            if (i != SelectedSongIndex)
-                            {
-                                indices.Add(i);
-                            }
-                        }
-                        //Select wrong answers(indices 1-5)
-                        for (int i = 1; i < 6; i++)
-                        {
-                            //Choose a random song
-                            while (!indices.Contains(SelectedSongIndex))
-                            {
-                                SelectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
-                            }
-                            indices.Remove(SelectedSongIndex);
-
-                            SelectedSong = Songs[SelectedSongIndex].ToArray();
-                            SouvenirNamesList[i] = SongNames[SelectedSongIndex];
-                            HighestNote = 0;
-
-                            int index = 0;
-                            foreach (int note in SelectedSong)
-                            {
-                                if (index != 0 && note > HighestNote)
-                                {
-                                    HighestNote = note;
-                                }
-                                index++;
-                            }
-
-                            //Choose how many semitones to transpose the player up. Add 1 to the bound because the upper bound is exclusive.
-                            PlayerTransposeUp = UnityEngine.Random.Range(0, 12 - HighestNote);
-
-                            //Repeat this the same number of times as the length of SelectedSong - 1, incrementing j each time starting at 0
-                            for (int j = 0; j < SelectedSong.Length; j++)
-                            {
-                                //Only transpose the note up if it is not the first element or a rest
-                                if (j != 0 && SelectedSong[j] != -1)
-                                {
-                                    SelectedSong[j] += PlayerTransposeUp;
-                                }
-                            }
-                            Debug.Log($"Souvenir list index {i} is {String.Join(", ", SelectedSong.Select(x => x.ToString()).ToArray())}.");
-                            SouvenirList[i] = SelectedSong.ToArray();
-                        }
-                        Debug.Log($"Names: {String.Join(", ", SouvenirNamesList)}");
                         GetComponent<KMBombModule>().HandlePass();
                     }
                 }
@@ -975,45 +307,21 @@ public class listeningPianoScript : MonoBehaviour
         if (moduleSolved && playSongCoroutine == null)
         {
             //Choose a random song
-            SelectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
+            var selectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
+            SelectedSong = Songs[selectedSongIndex];
 
-            SelectedSong = Songs[SelectedSongIndex].ToArray();
-
-            SelectedSongName = SongNames[SelectedSongIndex];
-
-            delay = new WaitForSeconds(60f / SelectedSong[0]);
-            HalfDelay = new WaitForSeconds(60f / (2 * SelectedSong[0]));
-
-            HighestNote = 0;
-
-            int index = 0;
-            foreach (int note in SelectedSong)
-            {
-                if (index != 0 && note > HighestNote)
-                {
-                    HighestNote = note;
-                }
-                index++;
-            }
-
+            delay = 60f / SelectedSong.Speed;
+            HalfDelay = 60f / (2 * SelectedSong.Speed);
+            HighestNote = SelectedSong.Notes.Max(n => n.Pitch);
 
             //Choose how many semitones to transpose the player up. Add 1 to the bound because the upper bound is exclusive.
             PlayerTransposeUp = UnityEngine.Random.Range(0, 12 - HighestNote);
 
-            //Repeat this the same number of times as the length of SelectedSong - 1, incrementing i each time starting at 0
-            for (int i = 0; i < SelectedSong.Length; i++)
-            {
-                //Only transpose the note up if it is not the first element or a rest
-                if (i != 0 && SelectedSong[i] != -1)
-                {
-                    SelectedSong[i] += PlayerTransposeUp;
-                }
-            }
-            playSongCoroutine = StartCoroutine(Play(SelectedSong));
+            playSongCoroutine = StartCoroutine(Play(SelectedSong, PlayerTransposeUp));
         }
         else if (playSongCoroutine == null)
         {
-            playSongCoroutine = StartCoroutine(Play(SelectedSong));
+            playSongCoroutine = StartCoroutine(Play(SelectedSong, PlayerTransposeUp));
         }
         else
         {
@@ -1021,26 +329,18 @@ public class listeningPianoScript : MonoBehaviour
         }
     }
 
-    IEnumerator Play(int[] song)
+    IEnumerator Play(Song song, int transposeBy)
     {
         Audio.PlaySoundAtTransform("ListeningTapePlay", transform);
 
         yield return PrePlayDelay;
 
         Playing = true;
-        SpinCoroutine = StartCoroutine(SpinRoutine());
-        int i = 0;
-        foreach (int note in song)
+        StartCoroutine(SpinRoutine());
+        foreach (var note in song.Notes)
         {
-            if (i != 0)
-            {
-                if (note != -1)
-                {
-                    Audio.PlaySoundAtTransform(note.ToString(), transform);
-                }
-                yield return delay;
-            }
-            i++;
+            Audio.PlaySoundAtTransform((note.Pitch + transposeBy).ToString(), transform);
+            yield return new WaitForSeconds(delay * note.Length);
         }
         yield return KeepSpinnersGoingFor;
         Playing = false;
@@ -1094,161 +394,34 @@ public class listeningPianoScript : MonoBehaviour
         }
     }
 
-    List<int> TwitchPlaysInput = new List<int>();
-    List<int> ListToPlay = new List<int>();
-    //int TPTranspose;
-    bool playinginput = false;
-    //bool TransposeSet = false;
+    private readonly string TwitchHelpMessage = @"!{0} play, !{0} p [Plays the tune] | !{0} toggle, !{0} t [Toggles the switch] | !{0} c cs d ef [Plays C, C♯, D, E♭] | !{0} 1 2 3 4 5 6 7 8 9 10 11 12 [Plays all twelve keys in order from left to right]";
 
-    //These variables are "cursors" that store the positions that the program is currently comparing
-    int PlaceInSelected = 1;
-    int PlaceInInput = 0;
-    int SelectedHold;
-    int InputHold;
-
-    //The @ before the string turns off escape sequences such as \s, \d or \n
-    private readonly String TwitchHelpMessage = @"Listening Piano Keys : !{0} play, !{0} p [Plays the tune] | !{0} toggle, !{0} t [Toggles the switch] | !{0} 1 2 3 4 5 6 7 8 9 10 11 12 [Plays all twelve keys in order from left to right]";
-
-    IEnumerator ProcessTwitchCommand(string command)
+    IEnumerable<KMSelectable> ProcessTwitchCommand(string command)
     {
-        //Debug.Log(playinginput);
-        MatchCollection matches = Regex.Matches(command, @"\d+");
+        Match m;
+        if (Regex.IsMatch(command, @"^\s*(?:play|p)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+            return new[] { PlayButton };
+        if (Regex.IsMatch(command, @"^\s*(?:toggle|t)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+            return new[] { Switch };
 
-        TwitchPlaysInput.Clear();
-        ListToPlay.Clear();
-        PlaceInSelected = Stage;
-        Debug.Log($"Stage is {Stage}.");
-        PlaceInInput = 0;
-
-        if (matches.Count > 0 && !playinginput)
+        // Try to parse a space-separated list of numbers or note names
+        var buttons = new List<KMSelectable>();
+        var regex = $@"^\s*\b([1-9]|1[0-2]|{_noteNames.Select(n => n.Join("|")).Join("|")})\b\s*";
+        int notePitch;
+        while ((m = Regex.Match(command, regex)).Success)
         {
-            foreach (Match match in matches)
-            {
-                //Reject the command if it finds any numbers below 1 or above 12
-                if (1 > int.Parse(match.Value) || int.Parse(match.Value) > 12)
-                {
-                    //Debug.Log("Out of range MY OWN MESSAGE");
-                    yield break;
-                }
-                else
-                {
-                    //Subtract 1 because the input range is 1-12 for intuitiveness, but the names of the keys go from 0-11
-                    TwitchPlaysInput.Add(int.Parse(match.Value) - 1);
-                }
-            }
-            //TPTranspose is the number of semitones UP to transpose SelectedSong to get to the key that the TwitchPlaysInput is in
-            // if(!TransposeSet && switchMovement.SwitchState)
-            // {
-            // 	TPTranspose = TwitchPlaysInput[0] - SelectedSong[1];
-            // 	Debug.Log($"The TPTranspose is {TwitchPlaysInput[0]} - {SelectedSong[1]} = {TPTranspose}.");
-            // 	TransposeSet = true;
-            // }
-
-            while (PlaceInInput < TwitchPlaysInput.Count && PlaceInSelected < SelectedSong.Length)
-            {
-                //Scan the input against the song to see if they all match
-                //If the current note is correct
-                // if(SelectedSong[PlaceInSelected] + TPTranspose == TwitchPlaysInput[PlaceInInput])
-                // {
-                //move each cursor to the next element that is not either the last note or a rest
-                SelectedHold = SelectedSong[PlaceInSelected];
-                InputHold = TwitchPlaysInput[PlaceInInput];
-
-                while (SelectedSong[PlaceInSelected] == SelectedHold || SelectedSong[PlaceInSelected] == -1)
-                {
-                    int ToAdd = (SelectedSong[PlaceInSelected] == -1) ? -1 : InputHold;
-                    ListToPlay.Add(ToAdd);
-                    PlaceInSelected++;
-                    if (PlaceInSelected >= SelectedSong.Length)
-                    {
-                        break;
-                    }
-                }
-                while (TwitchPlaysInput[PlaceInInput] == InputHold)
-                {
-                    PlaceInInput++;
-                    if (PlaceInInput >= TwitchPlaysInput.Count)
-                    {
-                        break;
-                    }
-                }
-                //Debug.Log("Right");
-                // }
-                // //The current note is wrong
-                // else
-                // {
-                // ListToPlay.Clear();
-                // for (int i = Stage; i < PlaceInSelected; i++)
-                // {
-                // 	int ToAdd = (SelectedSong[i] == -1) ? -1 : SelectedSong[i] + TPTranspose;
-                // 	ListToPlay.Add(ToAdd);
-                // }
-                // 	ListToPlay.Add(TwitchPlaysInput[PlaceInInput]);
-                // 	Debug.Log("Wrong");
-                // 	break;
-                // }
-            }
-            Debug.Log("List to play: " + string.Join(", ", ListToPlay.Select(x => x.ToString()).ToArray()));
-
-            //     //The place in SelectedSong, including rests
-            //     int Place = 1;
-            //		//Subtract 1 because the input range is 1-12 for intuitiveness, but the names of the keys go from 0-11
-            // 		TwitchPlaysInput.Add(int.Parse(match.Value) - 1);
-            //		 Place++;
-
-
-
-            // 		//Copy the rests from the selected song to the TwitchPlaysInput list so that it plays the input to the rhythm
-            //         while (Place < SelectedSong.Length && SelectedSong[Place] == -1)
-            //         {
-            //             TwitchPlaysInput.Add(-1);
-            //             Place++;
-            //         }
-            // 	//Debug.Log("Calculated twitch input string to play.");
-
-            playinginput = true;
-            yield return null;
-            for (int i = 0; i < ListToPlay.Count; i++)
-            {
-                int note = ListToPlay[i];
-                if (note != -1)
-                {
-                    yield return PianoKeys[note];
-                    yield return HalfDelay;
-                    yield return PianoKeys[note];
-                }
-                else
-                {
-                    yield return HalfDelay;
-                }
-                yield return HalfDelay;
-            }
-            // 	//Debug.Log("finished playing");
-            foreach (KMSelectable key in PianoKeys)
-            {
-                Lift(key);
-            }
-            playinginput = false;
-            // 	//Debug.Log(playinginput);
+            if (int.TryParse(m.Groups[1].Value, out notePitch))
+                buttons.Add(PianoKeys[notePitch]);
+            else if ((notePitch = _noteNames.IndexOf(n => n.Contains(m.Groups[1].Value))) >= 0)
+                buttons.Add(PianoKeys[notePitch]);
+            else
+                return null;
+            command = command.Substring(m.Length);
         }
-        else if (command.IndexOf("p", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            yield return null;
-            yield return PlayButton;
-            yield return PrePlayDelay;
-            yield return PlayButton;
-        }
-        else if (command.IndexOf("t", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            yield return null;
-            yield return Switch;
-            yield return Switch;
-        }
-        else
-        {
-            //Debug.Log("We got to here somehow");
-            yield break;
-        }
+        // If there is any other stuff in the command, reject it because it’s not simply a list of numbers
+        if (command.Length == 0 && buttons.Count > 0)
+            return buttons;
+        return null;
     }
 
     IEnumerator TwitchHandleForcedSolve()
@@ -1256,34 +429,17 @@ public class listeningPianoScript : MonoBehaviour
         yield return null;
         switchMovement.SwitchState = true;
         Stage = 1;
-        playinginput = true;
         yield return null;
-        for (int i = 1; i < SelectedSong.Length; i++)
+        for (var i = 1; i < SelectedSong.Notes.Length; i++)
         {
-            int note = SelectedSong[i];
-            if (note != -1)
-            {
-                PianoKeys[note].OnInteract();
-                yield return HalfDelay;
-                PianoKeys[note].OnInteractEnded();
-            }
-            else
-            {
-                yield return HalfDelay;
-            }
+            var note = SelectedSong.Notes[i];
+            PianoKeys[note.Pitch].OnInteract();
             yield return HalfDelay;
+            PianoKeys[note.Pitch].OnInteractEnded();
+            for (var j = 1; j < note.Length; j++)
+                yield return HalfDelay;
         }
         foreach (KMSelectable key in PianoKeys)
-        {
             Lift(key);
-        }
-        playinginput = false;
-    }
-
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 }
