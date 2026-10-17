@@ -18,9 +18,6 @@ public class listeningPianoScript : MonoBehaviour
     public GameObject Labels;
     public SwitchMovement switchMovement;
 
-    static int moduleIdCounter = 1;
-    public int moduleId;
-
     private static readonly string[][] _noteNames = "C,C♯/Cs/D♭/Df,D,D♯/Ds/E♭/Ef,E,F,F♯/Fs/G♭/Gf,G,G♯/Gs/A♭/Af,A,A♯/As/B♭/Bf,B".Split(',').Select(s => s.Split('/')).ToArray();
 
     struct Note
@@ -100,7 +97,17 @@ public class listeningPianoScript : MonoBehaviour
         new Song { Name = "APT.", Speed = 300, Melody = "gf2 gf1 gf2 f1 f1 f1 c2 c2 df2 ef2 f2 f1 f2 ef1 ef1 ef1 ef2 df2 f1" },
         new Song { Name = "Toxic", Speed = 550, Melody = "c2 c2 ef1 d1 c1 d1 ef2 c2 ef1 d1 c2 g4 d4 ef2 d2 c1" },
         new Song { Name = "Blinding Lights", Speed = 340, Melody = "f4 f3 ef1 f1 g2 c2 ef3 bf1 g2 f2 ef3 bf1 g2 f2 ef2 f1" },
+        new Song { Name = "Oh Little Town of Bethlehem", Speed = 250, Melody = "c2 c2 c2 d2 e1 d1 e1 f1 g2 e2 f2 e1 c1 d2 d2 c1" },
+        new Song { Name = "Monkey Island", Speed = 400, Melody = "f2 f1 af1 g1 f1 ef2 f6 ef2 ef1 df1 c1 ef1 df2 df2 c1" },
+        new Song { Name = "The Wild Rover", Speed = 300, Melody = "f2 f3 g1 f2 d2 c2 a2 a1 g3 a2 bf1" },
+        new Song { Name = "I Can See Clearly Now The Rain Is Gone", Speed = 300, Melody = "f1 g1 a1 bf3 a1 g3 f1 a2 f2 c1" },
+        new Song { Name = "Duck Tales", Speed = 375, Melody = "c2 e2 g2 a2 bf2 bf1 a2 g1 f2 f3 e5 f3 e1" },
+        new Song { Name = "Circle of Life", Speed = 200, Melody = "d1 ef1 f1 f1 f1 f2 f1 g1 f2 ef6 c1 ef1 ef2 ef1 ef1 g2 f1 d1" },
+        new Song { Name = "Worms", Speed = 500, Melody = "c2 d2 e4 g2 g2 g4 f2 e2 d3 c1 d2 e2 d2" },
+        new Song { Name = "Always Look On The Bright Side Of Life", Speed = 540, Melody = "f4 f4 d2 f4 d2 f8 d3 c1 d3 f1" },
+        new Song { Name = "99 Luftballons", Speed = 800, Melody = "g4 a2 f5 a5 g4 f2 d7 d3 bf2 bf5 bf5 bf4 bf4 a2 g2" },
     };
+    readonly int? DebugFixedSong = null;
 
     Song SelectedSong;
     float delay;
@@ -119,6 +126,8 @@ public class listeningPianoScript : MonoBehaviour
     const int SpinSpeed = 300;
     const float RewindTime = 1.4f;
     private bool moduleSolved;
+    static int moduleIdCounter = 1;
+    public int moduleId;
 
     private Coroutine playSongCoroutine;
     readonly bool TwitchPlaysActive;
@@ -155,11 +164,7 @@ public class listeningPianoScript : MonoBehaviour
         Stage = 1;
 
         //Choose a random song
-        var selectedSongIndex = UnityEngine.Random.Range(0, Songs.Length);
-
-        //DEBUGGING: Choose a predetermined song here
-        //selectedSongIndex = 36;
-
+        var selectedSongIndex = DebugFixedSong ?? UnityEngine.Random.Range(0, Songs.Length);
         SelectedSong = Songs[selectedSongIndex];
 
         delay = 60f / SelectedSong.Speed;
