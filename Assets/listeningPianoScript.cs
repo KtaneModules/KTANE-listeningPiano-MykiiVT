@@ -177,6 +177,7 @@ public class listeningPianoScript : MonoBehaviour
         var minAcceptableNote = SelectedSong.Notes[0].Pitch;
         var maxAcceptableNote = minAcceptableNote + 11 - HighestNote;
         Debug.Log($"[Listening Piano Keys #{moduleId}] The song is {SelectedSong.Name}, transposed up by {PlayerTransposeUp} semitones.");
+        //Accidentals will always be of the form "C♯"
         Debug.Log($"[Listening Piano Keys #{moduleId}] Acceptable starting notes (inclusive): {_noteNames[minAcceptableNote][0]} - {_noteNames[maxAcceptableNote][0]}");
         Debug.Log($"[Listening Piano Keys #{moduleId}] Possible solution: {SelectedSong.Notes.Select(n => _noteNames[n.Pitch][0]).Join(" ")}");
     }
@@ -416,9 +417,9 @@ public class listeningPianoScript : MonoBehaviour
         while ((m = Regex.Match(command, regex)).Success)
         {
             if (int.TryParse(m.Groups[1].Value, out notePitch))
-                buttons.Add(PianoKeys[notePitch]);
+                buttons.Add(PianoKeys[notePitch - 1]);
             else if ((notePitch = _noteNames.IndexOf(n => n.Contains(m.Groups[1].Value))) >= 0)
-                buttons.Add(PianoKeys[notePitch]);
+                buttons.Add(PianoKeys[notePitch - 1]);
             else
                 return null;
             command = command.Substring(m.Length);
